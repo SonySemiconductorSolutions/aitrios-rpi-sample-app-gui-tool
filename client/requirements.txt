@@ -1,0 +1,4 @@
+aiohttp==3.9.5
+python-socketio==5.11.3
+python-dotenv==1.0.1
+unify-0.3.5-py3-none-any.whl
