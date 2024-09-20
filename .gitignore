@@ -1,0 +1,12 @@
+.env
+.venv
+
+__pycache__
+unify-*.whl
+
+dist
+build
+unify
+*.spec
+
+backend/ui
