@@ -37,14 +37,14 @@ After starting it, open your web browser and go to [http://127.0.0.1:3001](http:
 2. Provide the necessary details to add a custom network.
 3. Upload the `network.rpk` file, and the (optional) `labels.txt` file.
 
-As an example: Here are some available models from the [Model Zoo](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/tree/feature-for-oss-release-check).
+As an example: Here are some available models from the [Model Zoo](https://github.com/raspberrypi/imx500-models).
 
 
 | Network Name | Network Type | Post Processor | Color Format | Preserve Aspect Ratio | Network File | Labels File |
 |--------------|--------------|-----------------|--------------|------------------------|--------------|-------------|
-| [mobilenet_v2](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/tree/feature-for-oss-release-check/models/classification/mobilenet_v2) | packaged | pp_cls | RGB | True | [network.rpk](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/blob/feature-for-oss-release-check/models/classification/mobilenet_v2/network.rpk) | [imagenet_labels.txt](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/blob/feature-for-oss-release-check/assets/imagenet_labels.txt) |
-| [efficientdet_lite0_pp](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/tree/feature-for-oss-release-check/models/object-detection/efficientdet_lite0_pp) | packaged | pp_od_efficientdet_lite0 | RGB | True | [network.rpk](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/blob/feature-for-oss-release-check/models/object-detection/efficientdet_lite0_pp/network.rpk) | [coco_labels.txt](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/blob/feature-for-oss-release-check/assets/coco_labels.txt) |
-| [deeplabv3plus](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/tree/feature-for-oss-release-check/models/segmentation/deeplabv3plus) | packaged | pp_segment | RGB | False | [network.rpk](https://github.com/SonySemiconductorSolutions/aitrios-rpi-model-zoo-dev/blob/feature-for-oss-release-check/models/segmentation/deeplabv3plus/network.rpk) | - |
+| **mobilenet_v2** | packaged | pp_cls | RGB | True | [network.rpk](https://github.com/raspberrypi/imx500-models/raw/main/imx500_network_mobilenet_v2.rpk) | [imagenet_labels.txt](https://github.com/google-coral/edgetpu/blob/master/test_data/imagenet_labels.txt) |
+| **efficientdet_lite0_pp** | packaged | pp_od_efficientdet_lite0 | RGB | True | [network.rpk](https://github.com/raspberrypi/imx500-models/raw/main/imx500_network_efficientdet_lite0_pp.rpk) | [coco_labels.txt](https://github.com/amikelive/coco-labels/blob/master/coco-labels-paper.txt) |
+| **deeplabv3plus** | packaged | pp_segment | RGB | False | [network.rpk](https://github.com/raspberrypi/imx500-models/raw/main/imx500_network_deeplabv3plus.rpk) | - |
 
 
 
@@ -93,6 +93,10 @@ As an example: Here are some available models from the [Model Zoo](https://githu
    ```bash
    make clean
    ```
+
+## License
+
+[LICENSE](./LICENSE)
 
 ## Notice
 
