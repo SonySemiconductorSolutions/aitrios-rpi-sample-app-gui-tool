@@ -124,30 +124,32 @@ class GuitoolConfig:
         if not self.config.has_section(model_name):
             raise ValueError(f"No model with the name '{model_name}' exists.")
 
-        if new_model_name != model_name:
+        if new_model_name and (new_model_name != model_name):
             if self.config.has_section(new_model_name):
                 raise ValueError(f"A model with the name '{new_model_name}' already exists.")
 
             old_model_dir = os.path.join(self.model_dir, model_name)
             new_model_dir = os.path.join(self.model_dir, new_model_name)
-            current_model_file = self.config.get(model_name, "model_file")
-            current_labels_file = self.config.get(model_name, "labels_file")
+            current_model_file = self.config.get(model_name, "model_file", fallback=None)
+            current_labels_file = self.config.get(model_name, "labels_file", fallback=None)
 
             self.config.set(model_name, "model_name", new_model_name)
             try:
-                self.config.set(
-                    model_name,
-                    "model_file",
-                    current_model_file.replace(old_model_dir, new_model_dir),
-                )
+                if current_model_file:
+                    self.config.set(
+                        model_name,
+                        "model_file",
+                        current_model_file.replace(old_model_dir, new_model_dir),
+                    )
             except:
                 pass
             try:
-                self.config.set(
-                    model_name,
-                    "labels_file",
-                    current_labels_file.replace(old_model_dir, new_model_dir),
-                )
+                if current_labels_file:
+                    self.config.set(
+                        model_name,
+                        "labels_file",
+                        current_labels_file.replace(old_model_dir, new_model_dir),
+                    )
             except:
                 pass
 
@@ -157,6 +159,7 @@ class GuitoolConfig:
 
             model_name = new_model_name
 
+        # Update other model properties
         if model_type:
             self.config.set(model_name, "model_type", model_type)
 
@@ -169,9 +172,10 @@ class GuitoolConfig:
         if model_preserve_aspect_ratio is not None:
             self.config.set(model_name, "model_preserve_aspect_ratio", str(model_preserve_aspect_ratio).lower())
 
+        # Update the model file if provided
         if model:
-            current_model_file = self.config.get(model_name, "model_file")
-            if os.path.isfile(current_model_file):
+            current_model_file = self.config.get(model_name, "model_file", fallback=None)
+            if current_model_file and os.path.isfile(current_model_file):
                 os.remove(current_model_file)
 
             model_file_path = os.path.join(self.model_dir, model_name, model.filename)
@@ -180,9 +184,10 @@ class GuitoolConfig:
             with open(model_file_path, "wb") as file:
                 file.write(model.file.read())
 
+        # Update the labels file if provided, even if it doesn't already exist
         if labels:
-            current_labels_file = self.config.get(model_name, "labels_file")
-            if os.path.isfile(current_labels_file):
+            current_labels_file = self.config.get(model_name, "labels_file", fallback=None)
+            if current_labels_file and os.path.isfile(current_labels_file):
                 os.remove(current_labels_file)
 
             labels_file_path = os.path.join(self.model_dir, model_name, labels.filename)
@@ -191,6 +196,7 @@ class GuitoolConfig:
             with open(labels_file_path, "wb") as file:
                 file.write(labels.file.read())
 
+        # Save updated configuration to file
         with open(self.config_file, "w") as configfile:
             self.config.write(configfile)
 

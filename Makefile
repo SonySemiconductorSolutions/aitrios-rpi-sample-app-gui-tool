@@ -30,7 +30,7 @@ endif
 setup: .venv-backend .venv-client .setup-frontend
 
 
-UNIFY_REPO := https://github.com/SonySemiconductorSolutions/aitrios-rpi-sample-app-gui-tool-client-dev.git
+UNIFY_REPO := https://github.com/SonySemiconductorSolutions/aitrios-rpi-sample-app-gui-tool-client.git
 UNIFY_BRANCH := main
 .unify:
 	rm -rf client/unify-*.whl
