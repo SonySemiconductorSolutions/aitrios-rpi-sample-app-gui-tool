@@ -42,6 +42,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import HomeRepairServiceIcon from "@mui/icons-material/HomeRepairService";
 import NotificationsList from "./components/notification/NotificationsList";
+import CollectionsIcon from "@mui/icons-material/Collections";
 
 const drawerWidth = "25vw";
 const compressedDrawerWidth = "64px";
@@ -197,6 +198,7 @@ const LinkListItem = ({ text, icon, open, selected, onClick }: LinkListItemProps
 const linkTabs = [
   { to: "/custom-network", text: "Custom network", icon: <HomeRepairServiceIcon /> },
   { to: "/camera-preview", text: "Camera preview", icon: <VideocamIcon /> },
+  { to: "/collections", text: "Images", icon: <CollectionsIcon /> },
 ];
 
 const Root = () => {
@@ -223,9 +225,7 @@ const Root = () => {
     if (shouldCloseDrawer) {
       setOpen(!open);
     }
-    if (!location.pathname.includes(to)) {
-      navigate(to);
-    }
+    navigate(to);
   };
 
   return (

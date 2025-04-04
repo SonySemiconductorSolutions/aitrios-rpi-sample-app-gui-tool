@@ -18,9 +18,9 @@ import { createTheme } from "@mui/material";
 
 export const MuiTheme = createTheme({
   typography: {
-    fontFamily: "Times New Roman, serif",
-    fontWeightMedium: 700,
-    fontWeightRegular: 700,
+    fontFamily: "Arial, sans-serif",
+    fontWeightMedium: 600,
+    fontWeightRegular: 500,
     fontSize: 14,
   },
   palette: {

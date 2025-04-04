@@ -2,11 +2,22 @@
 .venv
 
 __pycache__
-unify-*.whl
+modlib-*.whl
 
 dist
 build
-unify
+modlib
 *.spec
+*.egg-info
 
 backend/ui
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml

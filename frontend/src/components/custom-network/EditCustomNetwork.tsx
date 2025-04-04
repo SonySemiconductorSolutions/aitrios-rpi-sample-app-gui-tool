@@ -47,6 +47,13 @@ interface State {
   labelsFile: File | null;
 }
 
+const fileExtensions: Record<string, string> = {
+  "rpk_packaged": ".rpk",
+  "converted": ".zip",
+  "keras": ".keras",
+  "onnx": ".onnx"
+};
+
 const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDelete }: EditCustomNetworkProps) => {
   const networkFileRef = useRef();
   const labelFileRef = useRef();
@@ -76,8 +83,9 @@ const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDe
   const errorNotification = notificationsCtx.error;
 
   const doAdd = async () => {
-    if (!(networkFile && networkFile.name && networkFile.name.endsWith(".rpk"))) {
-      errorNotification("Invalid file type. Please upload a file with the .rpk extension.");
+    const modelType = network.model_type as keyof typeof fileExtensions;
+    if (networkFile && fileExtensions[modelType] && !networkFile.name.endsWith(fileExtensions[modelType])) {
+      errorNotification(`Invalid file type. Please upload a file with the ${fileExtensions[modelType]} extension for model type: ${modelType.toUpperCase()}.`);
       return;
     }
 
@@ -95,8 +103,9 @@ const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDe
   };
 
   const doSave = async () => {
-    if (networkFile && !networkFile.name.endsWith(".rpk")) {
-      errorNotification("Invalid file type. Please upload a file with the .rpk extension.");
+    const modelType = network.model_type as keyof typeof fileExtensions;
+    if (networkFile && fileExtensions[modelType] && !networkFile.name.endsWith(fileExtensions[modelType])) {
+      errorNotification(`Invalid file type. Please upload a file with the ${fileExtensions[modelType]} extension for model type: ${modelType.toUpperCase()}.`);
       return;
     }
 
@@ -195,6 +204,8 @@ const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDe
   const createDisabled =
     !network.model_name || !network.model_type || !network.model_post_processor || !network.model_color_format || !networkFile;
 
+  const acceptedExtension = fileExtensions[network.model_type as keyof typeof fileExtensions] ?? ".rpk"
+
   return (
     <Dialog
       fullWidth
@@ -239,7 +250,10 @@ const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDe
             <FormControl fullWidth sx={{ mt: 2 }}>
               <InputLabel>Model type</InputLabel>
               <Select value={network.model_type} name="model_type" onChange={handleSelectChange}>
-                <MenuItem value="packaged">Packaged</MenuItem>
+                <MenuItem value="rpk_packaged">Packaged (RPK)</MenuItem>
+                <MenuItem value="converted">Converted</MenuItem>
+                <MenuItem value="keras">KERAS</MenuItem>
+                <MenuItem value="onnx">ONNX</MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth sx={{ mt: 2 }}>
@@ -250,8 +264,10 @@ const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDe
                 <MenuItem value="pp_od_bcsn">Object Detection (BCSN)</MenuItem>
                 <MenuItem value="pp_od_bscn">Object Detection (BSCN)</MenuItem>
                 <MenuItem value="pp_od_efficientdet_lite0">Object Detection (EfficientDet Lite0)</MenuItem>
-                <MenuItem value="pp_posenet">Pose Estimation</MenuItem>
+                <MenuItem value="pp_posenet">Pose Estimation (PoseNet)</MenuItem>
+                <MenuItem value="pp_higherhrnet">Pose Estimation (HigherHRNet)</MenuItem>
                 <MenuItem value="pp_segment">Segmentation</MenuItem>
+                <MenuItem value="pp_anomaly">Anomaly Detection</MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth sx={{ mt: 2 }}>
@@ -272,7 +288,13 @@ const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDe
               label="Preserve Aspect Ratio"
               sx={{ mt: 2 }}
             />
-            {selectFileButton("Select network.rpk file", networkFileName, networkFileRef, ".rpk", changeNetworkFileHandler)}
+            {selectFileButton(
+              `Select network file (${acceptedExtension})`,
+              networkFileName,
+              networkFileRef,
+              acceptedExtension,
+              changeNetworkFileHandler
+            )}
             {selectFileButton("Select labels.txt file", labelsFileName, labelFileRef, ".txt", changeLabelFileHandler, true)}
           </DialogContent>
           {currentNetworkName === "" ? (

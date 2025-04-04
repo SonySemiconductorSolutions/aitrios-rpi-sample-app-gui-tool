@@ -22,9 +22,9 @@ from typing import Dict, List, Optional
 from fastapi import UploadFile
 
 
-class GuitoolConfig:
+class ModelConfig:
     def __init__(self):
-        self.model_dir = f"{os.getenv('UNIFY_HOME', os.path.expanduser('~/.unify'))}/models"
+        self.model_dir = f"{os.getenv('MODLIB_HOME', os.path.expanduser('~/.modlib'))}/models"
         os.makedirs(self.model_dir, exist_ok=True)
 
         self.config_file = os.path.join(self.model_dir, "models.cfg")

@@ -16,7 +16,7 @@
 
 import { RendererFunction } from "../interfaces/DetectionInterfaces";
 
-const drawInputImage: RendererFunction<undefined> = async (
+export const drawInputImage: RendererFunction<undefined> = async (
   ctx: CanvasRenderingContext2D,
   input: string,
   width: number,

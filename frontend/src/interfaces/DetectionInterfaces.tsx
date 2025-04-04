@@ -24,32 +24,48 @@ export interface Detections {
   confidence: number[];
   class_id: number[];
   tracker_id: number[] | null;
+  _roi_compensated: boolean;
+}
+
+export interface Poses {
+  n_detections: number;
+  confidence: number[];
+  keypoints: number[][];
+  keypoint_scores: number[][];
+  _roi_compensated: boolean;
 }
 
 export interface Segments {
   n_segments: number;
   indeces: number[];
   mask: string;
+  mask_shape: number[];
+  _roi_compensated: boolean;
 }
 
-export interface Poses {
-  n_detections: number;
-  scores: number[];
-  keypoints: number[][];
-  keypoint_scores: number[][];
+export interface Anomaly {
+  score: number;
+  heatmap: string;
+  heatmap_shape: number[];
+  _roi_compensated: boolean;
 }
+
 
 export interface FrameData {
   image: string;
-  detections: Classifications & Detections & Segments & Poses;
+  detections: (Classifications & Detections & Segments & Poses & Anomaly) | null;
   width: number;
   height: number;
+  roi: [number, number, number, number];
+  fps: number;
+  dps: number;
 }
 
 export interface RendererOptions {
   inputImage: boolean;
   labels?: string[] | null;
   threshold?: number;
+  pixel_threshold?: number;
 }
 
 export type RendererFunction<T> = (
@@ -58,5 +74,6 @@ export type RendererFunction<T> = (
   width: number,
   height: number,
   detections?: T,
+  roi?: [number, number, number, number],
   options?: RendererOptions
 ) => Promise<void>;

@@ -98,7 +98,8 @@ const CustomNetworkPage = () => {
         } else {
           setState((prevState) => ({ ...prevState, loading: false }));
         }
-      }
+      },
+      false
     );
   }, [sendRequest]);
 
@@ -108,12 +109,13 @@ const CustomNetworkPage = () => {
         url: `${BACKEND_HOST}/api/custom-network/selected?network=${network}`,
         method: "POST",
       },
-      () => {}
+      () => {},
+      true
     );
 
     await sendRequest(
       {
-        url: `http://localhost:3001/api/custom-network/list/${network}`,
+        url: `${BACKEND_HOST}/api/custom-network/list/${network}`,
       },
       (data: NetworkData) => {
         setState((prevState) => ({

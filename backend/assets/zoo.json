@@ -1,0 +1,183 @@
+{
+    "repo_url": "https://github.com/raspberrypi/imx500-models.git",
+    "models": [
+        {
+            "network_name": "efficientnet_bo",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_efficientnet_bo.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "efficientnet_lite0",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_efficientnet_lite0.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "efficientnetv2_b0",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_efficientnetv2_b0.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "efficientnetv2_b1",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_efficientnetv2_b1.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "efficientnetv2_b2",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_efficientnetv2_b2.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "mnasnet1.0",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_mnasnet1.0.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "mobilenet_v2",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_mobilenet_v2.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "mobilevit_xs",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "BGR",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_mobilevit_xs.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "mobilevit_xxs",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_mobilevit_xxs.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "regnetx_002",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_regnetx_002.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "regnety_002",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_regnety_002.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "regnety_004",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_regnety_004.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "resnet18",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_resnet18.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "shufflenet_v2_x1_5",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_shufflenet_v2_x1_5.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "squeezenet1.0",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_cls_softmax",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_squeezenet1.0.rpk",
+            "labels_file": "imagenet_labels.txt"
+        },
+        {
+            "network_name": "efficientdet_lite0_pp",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_od_efficientdet_lite0",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_efficientdet_lite0_pp.rpk",
+            "labels_file": "coco_labels_91.txt"
+        },
+        {
+            "network_name": "nanodet_plus_416x416_pp",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_od_bscn",
+            "color_format": "BGR",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_nanodet_plus_416x416_pp.rpk",
+            "labels_file": "coco_labels_80.txt"
+        },
+        {
+            "network_name": "ssd_mobilenetv2_fpnlite_320x320_pp",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_od_bscn",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_ssd_mobilenetv2_fpnlite_320x320_pp.rpk",
+            "labels_file": "coco_labels_91.txt"
+        },
+        {
+            "network_name": "deeplabv3plus",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_segment",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_deeplabv3plus.rpk"
+        },
+        {
+            "network_name": "posenet",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_posenet",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_posenet.rpk"
+        }
+    ]
+}
