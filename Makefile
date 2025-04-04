@@ -17,93 +17,74 @@
 .ONESHELL:
 .PHONY: backend client frontend
 SHELL := /bin/bash
-PYTHON3 := python3
 
 ifeq (, $(shell which npm))
- 	$(error "nodejs notfound. To install Node.js, run the following commands: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -; sudo apt install -y nodejs")
+ 	$(error "nodejs notfound. To install Node.js, run the following commands: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -; sudo apt install -y nodejs")
+endif
+
+ifeq (, $(shell which uv))
+ 	$(error "uv notfound. To install uv, run the following commands: curl -LsSf https://astral.sh/uv/install.sh | sh")
 endif
 
 ifneq (,$(wildcard .env))
 	include .env
 endif
 
-setup: .venv-backend .venv-client .setup-frontend
+setup: .venv-client .build-frontend
+	test -d .venv || uv venv --system-site-packages
 
+.venv-client:
+	cd client && test -d .venv || uv venv --system-site-packages
 
-UNIFY_REPO := https://github.com/SonySemiconductorSolutions/aitrios-rpi-sample-app-gui-tool-client.git
-UNIFY_BRANCH := main
-.unify:
-	rm -rf client/unify-*.whl
-	@if [ ! -d "unify" ]; then \
-		git clone $(UNIFY_REPO) unify; \
-	fi
-	cd unify
-	git checkout $(UNIFY_BRANCH) && git pull
-	make build
-	cp dist/unify-*.whl ../client
+.build-frontend:
+	rm -rf frontend/build
+	find backend/ui -type f ! -name '.gitkeep' -exec rm -f {} +
+	find backend/ui -type d -empty -delete
+	npm --prefix frontend ci && npm --prefix frontend run build
+	mkdir -p backend/ui && cp -R frontend/build/* backend/ui
 
-.venv-backend:
-	cd backend
-	test -d .venv || $(PYTHON3) -m venv .venv
-	. .venv/bin/activate && pip install --upgrade pip
-	pip install -r requirements.txt
+clean:
+	rm -rf .venv client/.venv backend/.venv
+	rm -rf frontend/build frontend/node_modules client/build backend/build
+	find backend/ui -type f ! -name '.gitkeep' -exec rm -f {} +
+	find backend/ui -type d -empty -delete
+	find . -name "__pycache__" -type d -exec rm -rf {} +
+	find . -name "*.egg-info" -type d -exec rm -rf {} +
 
-.venv-client: .unify
-	cd client
-	test -d .venv || $(PYTHON3) -m venv .venv --system-site-packages
-	. .venv/bin/activate && pip install --upgrade pip
-	pip install -r requirements.txt
+lint:
+	test -d .venv || uv venv --system-site-packages
+	uv run ruff format
+	uv run ruff check --fix
+	cd frontend && npm run lint
 
-.setup-frontend:
-	cd frontend && npm install
 
 .check-env:
 	$(if $(wildcard .env),, $(error Error: .env file not found. Please create a .env file with necessary environment variables.))
 
-clean:
-	rm -rf .venv
-	rm -rf unify
-	rm -f client/unify-*.whl
-	rm -rf client/.venv && rm -rf client/build && rm -rf client/dist && rm -f client/*.spec
-	rm -rf backend/.venv && rm -rf backend/build && rm -rf backend/dist && rm -f backend/*.spec
-	rm -rf frontend/build && rm -rf frontend/node_modules
-
-lint:
-	test -d .venv || ( $(PYTHON3) -m venv .venv && \
-	. .venv/bin/activate && pip install --upgrade pip && \
-	pip install isort==5.13.2 black==24.4.2 flake8==7.1.0 )
-	. .venv/bin/activate && isort . && black . --line-length 120 && flake8
-	cd frontend && npm run lint
-
-
 backend: .check-env
-	test -d backend/.venv || make .venv-backend
-	cd backend && .venv/bin/python src/main.py
+	cd backend && uv run -m src.main
 	
 client: .check-env
 	test -d client/.venv || make .venv-client
-	cd client && .venv/bin/python src/client.py
+	cd client && uv run -m src.client
 
 frontend: .check-env
-	test -d frontend/node_modules || make .setup-frontend
+	test -d frontend/node_modules || npm --prefix frontend install
 	cd frontend && export REACT_APP_BACKEND_HOST=$(REACT_APP_BACKEND_HOST) && npm start
 
 
-.build-frontend:
-	rm -rf frontend/build
-	cd frontend; npm ci; npm run build
+ARCH := $(shell uname -m)
+.appimagetool:
+	test $(ARCH) = "aarch64" || { echo "Unsupported architecture: $(ARCH)"; exit 1; }
+	cd build
+	test -f appimagetool || wget -O appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage
+	chmod +x appimagetool
 
-.build-backend: .build-frontend .venv-backend 
-	mkdir -p backend/ui && cp -R frontend/build/* backend/ui
-	cd backend && . .venv/bin/activate && pip install pyinstaller
-	.venv/bin/pyinstaller -n guitool --nowindow --onefile --add-data ui:ui src/main.py
-
-.build-client: .venv-client
-	cd client && . .venv/bin/activate && pip install pyinstaller
-	.venv/bin/pyinstaller -n client --nowindow --onefile --collect-binaries unify src/client.py
-
-build: .build-backend .build-client
-	rm -rf dist && mkdir -p dist
-	mv backend/dist/* dist
-	mv client/dist/* dist
-	cp run.sh dist/; chmod 755 dist/run.sh
+build: .appimagetool .build-frontend
+	rm -rf build/guitool.AppDir/usr build/guitool.AppDir/.DirIcon build/Guitool-aarch64.AppImage
+	mkdir -p build/guitool.AppDir/usr/bin
+	mkdir -p build/guitool.AppDir/usr/lib/python3.11/site-packages
+	cp -R ./backend ./client ./main.py build/guitool.AppDir/usr/bin/
+	pip install git+https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library@main ./backend ./client --target=build/guitool.AppDir/usr/lib/python3.11/site-packages
+	cd ./build && ARCH=aarch64 ./appimagetool ./guitool.AppDir
+	chmod +x Guitool-aarch64.AppImage

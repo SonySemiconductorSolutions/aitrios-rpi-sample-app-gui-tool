@@ -46,40 +46,24 @@ const drawKeypoints = (
   scaleX: number,
   scaleY: number,
   radius: number,
-  threshold: number
+  threshold: number,
+  roi: [number, number, number, number],
+  _roi_compensated: boolean
 ) => {
   if (keypointScores[poseIdx][keypointIdx] >= threshold) {
-    const y = keypoints[poseIdx][2 * keypointIdx] * scaleY;
-    const x = keypoints[poseIdx][2 * keypointIdx + 1] * scaleX;
+    let y = keypoints[poseIdx][2 * keypointIdx];
+    let x = keypoints[poseIdx][2 * keypointIdx + 1];
+    
+    // Compensate for ROI when needed
+    if (!(roi[0] === 0 && roi[1] === 0 && roi[2] === 1 && roi[3] === 1) && !_roi_compensated) {
+      x = roi[0] + x * roi[2];
+      y = roi[1] + y * roi[3];
+    }
+    
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.arc(x * scaleX, y * scaleY, radius, 0, 2 * Math.PI);
     ctx.fillStyle = "rgba(0, 255, 0, 1)";
     ctx.fill();
-  }
-};
-
-const drawLine = (
-  ctx: CanvasRenderingContext2D,
-  keypoints: number[][],
-  keypointScores: number[][],
-  poseIdx: number,
-  keypoint1: number,
-  keypoint2: number,
-  scaleX: number,
-  scaleY: number,
-  threshold: number
-) => {
-  if (keypointScores[poseIdx][keypoint1] >= threshold && keypointScores[poseIdx][keypoint2] >= threshold) {
-    const y1 = keypoints[poseIdx][2 * keypoint1] * scaleY;
-    const x1 = keypoints[poseIdx][2 * keypoint1 + 1] * scaleX;
-    const y2 = keypoints[poseIdx][2 * keypoint2] * scaleY;
-    const x2 = keypoints[poseIdx][2 * keypoint2 + 1] * scaleX;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = "rgba(0, 255, 255, 1)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
   }
 };
 
@@ -90,10 +74,33 @@ const drawSkeleton = (
   poseIdx: number,
   scaleX: number,
   scaleY: number,
-  threshold: number
+  threshold: number,
+  roi: [number, number, number, number],
+  _roi_compensated: boolean
 ) => {
   skeleton.forEach(([keypoint1, keypoint2]) => {
-    drawLine(ctx, keypoints, keypointScores, poseIdx, keypoint1, keypoint2, scaleX, scaleY, threshold);
+    // Draw Line
+    if (keypointScores[poseIdx][keypoint1] >= threshold && keypointScores[poseIdx][keypoint2] >= threshold) {
+      let y1 = keypoints[poseIdx][2 * keypoint1] ;
+      let x1 = keypoints[poseIdx][2 * keypoint1 + 1];
+      let y2 = keypoints[poseIdx][2 * keypoint2];
+      let x2 = keypoints[poseIdx][2 * keypoint2 + 1];
+      
+      // Compensate for ROI when needed
+      if (!(roi[0] === 0 && roi[1] === 0 && roi[2] === 1 && roi[3] === 1) && !_roi_compensated) {
+        x1 = roi[0] + x1 * roi[2];
+        y1 = roi[1] + y1 * roi[3];
+        x2 = roi[0] + x2 * roi[2];
+        y2 = roi[1] + y2 * roi[3];
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(x1 * scaleX, y1 * scaleY);
+      ctx.lineTo(x2 * scaleX, y2 * scaleY);
+      ctx.strokeStyle = "rgba(0, 255, 255, 1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
   });
 };
 
@@ -103,6 +110,7 @@ export const drawPoseEstimationOutput: RendererFunction<Poses> = async (
   width: number,
   height: number,
   detections: Poses,
+  roi: [number, number, number, number],
   options: RendererOptions = DEFAULT_OPTIONS
 ) => {
   const keypointRadius = 3
@@ -116,15 +124,15 @@ export const drawPoseEstimationOutput: RendererFunction<Poses> = async (
     await drawInputImage(ctx, input, width, height);
   }
 
-  const scaleX = height;
-  const scaleY = width;
+  const scaleX = width;
+  const scaleY = height;
 
   for (let i = 0; i < detections.n_detections; i++) {
-    if (detections.scores[i] > keypointScoreThreshold) {
+    if (detections.confidence[i] > keypointScoreThreshold) {
       for (let j = 0; j < 17; j++) {
-        drawKeypoints(ctx, detections.keypoints, detections.keypoint_scores, i, j, scaleX, scaleY, keypointRadius, keypointScoreThreshold);
+        drawKeypoints(ctx, detections.keypoints, detections.keypoint_scores, i, j, scaleX, scaleY, keypointRadius, keypointScoreThreshold, roi, detections._roi_compensated);
       }
-      drawSkeleton(ctx, detections.keypoints, detections.keypoint_scores, i, scaleX, scaleY, keypointScoreThreshold);
+      drawSkeleton(ctx, detections.keypoints, detections.keypoint_scores, i, scaleX, scaleY, keypointScoreThreshold, roi, detections._roi_compensated);
     }
   }
 };

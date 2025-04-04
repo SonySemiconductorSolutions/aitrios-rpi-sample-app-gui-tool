@@ -18,6 +18,8 @@ import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom"
 
 import CustomNetworkPage from "./pages/CustomNetworkPage";
 import CameraPreviewPage from "./pages/CameraPreviewPage";
+import CollectionsPage from "./pages/CollectionsPage";
+import CollectionDetailPage from "./pages/CollectionDetailPage";
 
 import Root from "./Root";
 import ErrorPage from "./ErrorPage";
@@ -31,10 +33,9 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <Navigate to="custom-network" /> },
         { path: "custom-network", element: <CustomNetworkPage /> },
-        {
-          path: "camera-preview",
-          element: <CameraPreviewPage />,
-        },
+        { path: "camera-preview", element: <CameraPreviewPage /> },
+        { path: "collections", element: <CollectionsPage /> },
+        { path: "collections/:collection_name", element: <CollectionDetailPage /> },
         {
           path: "*",
           element: <ErrorPage />,

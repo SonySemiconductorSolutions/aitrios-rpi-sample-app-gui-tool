@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
+import { useLocation } from 'react-router-dom';
 import PageLayout from "../components/layout/PageLayout";
 import CameraPreview from "../components/camera-preview/CameraPreview";
 
 const CameraPreviewPage = () => {
+  const location = useLocation();
+  const { collection_name, expanded } = location.state || {};
+
   return (
     <PageLayout>
-      <CameraPreview />
+      <CameraPreview initial_collection={collection_name} initial_expanded={expanded || true} />
     </PageLayout>
   );
 };

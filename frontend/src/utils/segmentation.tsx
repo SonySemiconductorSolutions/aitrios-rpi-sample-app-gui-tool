@@ -72,52 +72,46 @@ export const drawSegmentationOutput: RendererFunction<Segments> = async (
   width: number,
   height: number,
   detections: Segments,
+  roi: [number, number, number, number],
   options: RendererOptions = DEFAULT_OPTIONS
 ) => {
-  const maskWidth = 320;
-  const maskHeight = 320;
   // const { inputImage, labels } = { ...DEFAULT_OPTIONS, ...options };
-  const { inputImage} = { ...DEFAULT_OPTIONS, ...options };
+  const { inputImage } = { ...DEFAULT_OPTIONS, ...options };
 
   if (inputImage) {
     await drawInputImage(ctx, input, width, height);
   }
 
+  const [maskHeight, maskWidth] = detections.mask_shape;
   const decodedMask = decompressMask(detections.mask);
   const maskArray = new Uint8Array(decodedMask.buffer);
 
-  const overlay = ctx.createImageData(width, height);
-  const widthRatio = maskWidth / width;
-  const heightRatio = maskHeight / height;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const widthRatio = maskWidth / (roi[2] * width);
+  const heightRatio = maskHeight / (roi[3] * height);
 
-  for (let y = 0; y < height; y++) {
-    const srcY = Math.floor(y * heightRatio) * maskWidth;
-    for (let x = 0; x < width; x++) {
-      const srcX = Math.floor(x * widthRatio);
+  const start_x = Math.floor(roi[0] * width);
+  const start_y = Math.floor(roi[1] * height);
+  const end_x = start_x + Math.floor(roi[2] * width);
+  const end_y = start_y + Math.floor(roi[3] * height);
+
+  for (let y = start_y; y < end_y; y++) {
+    for (let x = start_x; x < end_x; x++) {
+      
+      const srcY = Math.floor((y - start_y) * heightRatio) * maskWidth;
+      const srcX = Math.floor((x - start_x) * widthRatio);
       const segmentIndex = maskArray[srcY + srcX];
 
-      const pos = (y * width + x) * 4;
       if (segmentIndex !== 0) {
         const color = COLOR_PALETTE[segmentIndex];
-        overlay.data[pos] = color.r;
-        overlay.data[pos + 1] = color.g;
-        overlay.data[pos + 2] = color.b;
-        overlay.data[pos + 3] = 150; // Alpha value for transparency
+        const alpha = 0.4;
+
+        const pos = (y * width + x) * 4;
+        imageData.data[pos] = (1 - alpha) * imageData.data[pos] + alpha * color.r;
+        imageData.data[pos + 1] = (1 - alpha) * imageData.data[pos + 1] + alpha * color.g;
+        imageData.data[pos + 2] = (1 - alpha) * imageData.data[pos + 2] + alpha * color.b;
       }
     }
-  }
-
-  // Blend the overlay with the original image
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const overlayData = overlay.data;
-  const imageDataData = imageData.data;
-
-  for (let i = 0; i < overlayData.length; i += 4) {
-    const alpha = overlayData[i + 3] / 255;
-    const invAlpha = 1 - alpha;
-    imageDataData[i] = invAlpha * imageDataData[i] + alpha * overlayData[i];
-    imageDataData[i + 1] = invAlpha * imageDataData[i + 1] + alpha * overlayData[i + 1];
-    imageDataData[i + 2] = invAlpha * imageDataData[i + 2] + alpha * overlayData[i + 2];
   }
 
   ctx.putImageData(imageData, 0, 0);

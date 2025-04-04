@@ -27,23 +27,29 @@ const HeaderWithButton = ({ title, onAddButtonClick, onDownloadButtonClick, disa
   return (
     <Grid container sx={{ display: "flex", alignItems: "center", mb: 2 }}>
       <Grid item xs={8} md={6}>
-        <Typography sx={{ color: "text.secondary", textTransform: "uppercase", textAlign: "start", paddingTop: 2, paddingBottom: 2 }}>
+        <Typography
+          sx={{ color: "text.secondary", textTransform: "uppercase", textAlign: "start", paddingTop: 2, paddingBottom: 2 }}
+        >
           {title}
         </Typography>
       </Grid>
       {(onAddButtonClick || onDownloadButtonClick) && (
         <Grid item xs={4} md={6} sx={{ display: "flex", justifyContent: "flex-end" }}>
-          {/* <Button
-            sx={{ paddingTop: "7px", paddingBottom: "7px", marginRight: 2 }}
-            variant="contained"
-            disabled={disableButton}
-            onClick={onDownloadButtonClick}
-          >
-            Download Zoo
-          </Button> */}
-          <Button sx={{ paddingTop: "7px", paddingBottom: "7px" }} variant="contained" disabled={disableButton} onClick={onAddButtonClick}>
-            Add
-          </Button>
+          {onDownloadButtonClick && (
+            <Button
+              sx={{ paddingTop: "7px", paddingBottom: "7px", marginRight: 2 }}
+              variant="contained"
+              disabled={disableButton}
+              onClick={onDownloadButtonClick}
+            >
+              Download Zoo
+            </Button>
+          )}
+          {onAddButtonClick && (
+            <Button sx={{ paddingTop: "7px", paddingBottom: "7px" }} variant="contained" disabled={disableButton} onClick={onAddButtonClick}>
+              Add
+            </Button>
+          )}
         </Grid>
       )}
     </Grid>

@@ -52,3 +52,12 @@ export interface EditCustomNetworkProps {
   onSave: (data: EditNetworkData) => void;
   onDelete: (network: string) => Promise<void>;
 }
+
+export interface CollectionsProps {
+  loading: boolean;
+  collections: { collection_name: string; n_images: string }[];
+  onAdd: (name: string) => void;
+  onEdit: (name: string, new_name: string) => void;
+  onDelete: (name: string) => void;
+  onDownload: (name: string) => void;
+}

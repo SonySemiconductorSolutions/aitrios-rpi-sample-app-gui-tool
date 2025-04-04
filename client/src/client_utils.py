@@ -16,15 +16,17 @@
 
 from dataclasses import dataclass
 
-from unify.models import Model
-from unify.models.post_processors import (
+from modlib.models import Model
+from modlib.models.post_processors import (
     pp_cls,
     pp_cls_softmax,
     pp_od_bcsn,
     pp_od_bscn,
     pp_od_efficientdet_lite0,
     pp_posenet,
+    pp_higherhrnet,
     pp_segment,
+    pp_anomaly,
 )
 
 
@@ -36,12 +38,13 @@ class PostProcessors:
     pp_od_bscn = pp_od_bscn
     pp_od_efficientdet_lite0 = pp_od_efficientdet_lite0
     pp_posenet = pp_posenet
+    pp_higherhrnet = pp_higherhrnet
     pp_segment = pp_segment
+    pp_anomaly = pp_anomaly
 
 
 class CustomModel(Model):
     def __init__(self, info):
-
         # Get unified post processor function
         if hasattr(PostProcessors, info["model_post_processor"]):
             self.pp_func = getattr(PostProcessors, info["model_post_processor"])

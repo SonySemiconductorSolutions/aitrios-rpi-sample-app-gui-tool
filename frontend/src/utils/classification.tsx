@@ -29,6 +29,7 @@ export const drawClassificationOutput: RendererFunction<Classifications> = async
   width: number,
   height: number,
   detections: Classifications,
+  roi: [number, number, number, number],
   options: RendererOptions = DEFAULT_OPTIONS
 ) => {
   const predictionsNum = 5;

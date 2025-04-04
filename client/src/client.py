@@ -23,21 +23,27 @@ import signal
 
 import cv2
 import socketio
-from client_utils import CustomModel
 from dotenv import load_dotenv
-from unify.devices import AiCamera
+from src.client_utils import CustomModel
+
+from modlib.devices import AiCamera
 
 
 class DeviceClient:
     def __init__(self, server_host, server_port):
         self.SERVER_HOST = server_host
         self.SERVER_PORT = server_port
+
         self.selected_model = None
+        self.enable_input_tensor = False
+
         self.client_id = "id-camera"
         self.sio = None
         self.initialize_sio()
         self.streaming_process = None
         self.queue = multiprocessing.Queue()
+        self.cmd_queue = multiprocessing.Queue()
+        self.capture_response_queue = multiprocessing.Queue()
 
     def initialize_sio(self):
         self.sio = socketio.AsyncClient()
@@ -49,13 +55,13 @@ class DeviceClient:
 
         @self.sio.event
         async def disconnect():
-            print("Disconnected from the server. Attempting to reconnect")
-            # Pause the queue processing until reconnection
-            self.queue.put(None)
+            print("Disconnected from the server")
+            self.stop_stream()
 
         @self.sio.event
         async def control(msg):
             if msg["action"] == "start":
+                self.enable_input_tensor = False  # Default
                 self.start_stream()
             elif msg["action"] == "stop":
                 self.stop_stream()
@@ -64,8 +70,23 @@ class DeviceClient:
             elif msg["action"] == "get_selected":
                 print(f"getting selected model: {self.selected_model}")
                 return {"selected_model": self.selected_model}
+            elif msg["action"] == "enable_input_tensor":
+                # TODO: Handle this in real time using the cmd_queue Without having to restart the device.
+                # TODO 2: Disable for models that are converted with input tensor disabled
+                self.enable_input_tensor = msg["value"]
+                self.stop_stream()
+                self.start_stream()
+
+            # Device control event
             else:
-                raise ValueError("Unknown control event.")
+                self.cmd_queue.put(msg)
+
+                # Events that require response
+                if msg["action"] == "capture":
+                    response = await self.loop.run_in_executor(None, self.capture_response_queue.get)
+                    return response
+                else:
+                    return "Device control message added to the command queue."
 
     async def sio_connect(self, attempts=5, delay=2):
         for attempt in range(1, attempts + 1):
@@ -85,8 +106,8 @@ class DeviceClient:
         # TODO: Redo & Verify when model management fully on device
         try:
             model_config = configparser.ConfigParser()
-            model_config.read(f"{os.getenv('UNIFY_HOME', os.path.expanduser('~/.unify'))}/models/models.cfg")
-            if model_config.has_section(msg["network"]):
+            model_config.read(f"{os.getenv('MODLIB_HOME', os.path.expanduser('~/.modlib'))}/models/models.cfg")
+            if msg["network"] is None or model_config.has_section(msg["network"]):
                 print(f"selecting model {msg['network']}")
                 self.selected_model = msg["network"]
                 return {"selected_model": self.selected_model}
@@ -117,93 +138,96 @@ class DeviceClient:
             frame_data = await self.loop.run_in_executor(None, self.queue.get)
             if frame_data is None:
                 break
-            await self.sio.emit("frame", frame_data)
+
+            if self.sio.connected:
+                await self.sio.emit("frame", frame_data)
+            else:
+                print("Not connected to the server, skipping frame emission.")
 
     def stop_stream(self):
         if self.streaming_process is None or not self.streaming_process.is_alive():
             print("Stream not running.")
             return
 
-        print("Stopping Stream")
         self.queue.put(None)
-        os.kill(self.streaming_process.pid, signal.SIGKILL)
+        self.cmd_queue.put({"action": "shutdown"})
+        self.streaming_process.join()
+        print("Streaming stopped.")
 
     def start_stream(self):
         if self.streaming_process is not None and self.streaming_process.is_alive():
             print("Stream is already running, waiting for shutdown")
-            self.queue.put(None)
-            os.kill(self.streaming_process.pid, signal.SIGKILL)
-            self.streaming_process.join()
+            self.stop_stream()
 
         self.loop.create_task(self.process_queue())
-        self.streaming_process = multiprocessing.Process(target=self.unify_run)
+        self.streaming_process = multiprocessing.Process(target=self.modlib_run)
         self.streaming_process.start()
 
-    def unify_run(self):
-
-        device = self.get_unify_device()
-        model = self.get_unify_model(self.selected_model)
-        device.deploy(model)
+    def modlib_run(self):
+        device = AiCamera(headless=True, enable_input_tensor=self.enable_input_tensor)
+        model = self.get_modlib_model(self.selected_model)
+        if model:
+            device.deploy(model, overwrite=False)
 
         with device as stream:
             for frame in stream:
-
-                ret, buffer = cv2.imencode(
-                    ".jpg",
-                    cv2.putText(
-                        cv2.putText(
+                # Process command queue
+                if not self.cmd_queue.empty():
+                    msg = self.cmd_queue.get()
+                    if msg.get("action") == "capture":
+                        ret, buffer = cv2.imencode(
+                            ".jpg",
                             (
                                 cv2.cvtColor(frame.image, cv2.COLOR_RGB2BGR)
                                 if frame.color_format == "RGB"
                                 else frame.image
                             ),
-                            f"FPS: {frame.fps:.2f}",
-                            (10, 20),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.30,
-                            (0, 0, 0),
-                            1,
-                            cv2.LINE_AA,
-                        ),
-                        f"DPS: {frame.dps:.2f}",
-                        (10, 40),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.30,
-                        (0, 0, 0),
-                        1,
-                        cv2.LINE_AA,
-                    ),
+                        )
+                        self.capture_response_queue.put(
+                            {"image": f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}"}
+                        )
+                    elif msg.get("action") == "input_tensor_cropping":
+                        device.set_input_tensor_cropping(tuple(msg.get("roi_relative")))
+                    elif msg.get("action") == "shutdown":
+                        break
+                    else:
+                        raise ValueError("Unknown control event.")
+
+                ret, buffer = cv2.imencode(
+                    ".jpg", cv2.cvtColor(frame.image, cv2.COLOR_RGB2BGR) if frame.color_format == "RGB" else frame.image
                 )
 
                 frame_data = {
-                    "image": f'data:image/jpeg;base64,{base64.b64encode(buffer).decode("utf-8")}',
-                    "detections": frame.detections.json(),
+                    "image": f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}",
+                    "detections": frame.detections.json() if model else None,
                     "width": frame.width,
                     "height": frame.height,
+                    "roi": frame.roi,
+                    "fps": frame.fps,
+                    "dps": frame.dps,
                 }
 
                 self.queue.put(frame_data)
 
     @staticmethod
-    def get_unify_model(model_name: str):
+    def get_modlib_model(model_name: str):
         model_config = configparser.ConfigParser()
-        model_config.read(f"{os.getenv('UNIFY_HOME', os.path.expanduser('~/.unify'))}/models/models.cfg")
+        model_config.read(f"{os.getenv('MODLIB_HOME', os.path.expanduser('~/.modlib'))}/models/models.cfg")
 
         if model_config.has_section(model_name):
             return CustomModel(model_config[model_name])
         else:
-            raise ValueError("Cannot find model.")
-
-    @staticmethod
-    def get_unify_device():
-        # TODO: identify device automatically
-        return AiCamera(headless=False)
+            return None
 
     async def shutdown(self):
         # Stop streaming process the queue
         if self.streaming_process and self.streaming_process.is_alive():
             self.queue.put_nowait(None)
-            os.kill(self.streaming_process.pid, signal.SIGKILL)
+            self.cmd_queue.put_nowait({"action": "shutdown"})
+            self.streaming_process.join()
+
+        if self.sio:
+            await self.sio.disconnect()
 
 
 def handle_sigterm(client):
@@ -212,7 +236,6 @@ def handle_sigterm(client):
 
 
 if __name__ == "__main__":
-
     load_dotenv()
     SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
     SERVER_PORT = int(os.getenv("SERVER_PORT", 3001))

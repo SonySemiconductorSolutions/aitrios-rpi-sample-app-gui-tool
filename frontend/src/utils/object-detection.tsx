@@ -21,7 +21,24 @@ import { Detections, RendererFunction, RendererOptions } from "../interfaces/Det
 const DEFAULT_OPTIONS: RendererOptions = {
   inputImage: true,
   labels: null,
-  threshold: 0.5,
+  threshold: 0.3,
+};
+
+// This code snippet (stringToColour) is based on content from Stack Overflow.
+// Original question: https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript
+// Answer by: [Joe Freeman](https://stackoverflow.com/users/108907/joe-freeman)
+// Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+const stringToColour = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let colour = "#";
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    colour += ("00" + value.toString(16)).substr(-2);
+  }
+  return colour;
 };
 
 export const drawObjectDetectionOutput: RendererFunction<Detections> = async (
@@ -30,10 +47,10 @@ export const drawObjectDetectionOutput: RendererFunction<Detections> = async (
   width: number,
   height: number,
   detections: Detections,
+  roi: [number, number, number, number],
   options: RendererOptions = DEFAULT_OPTIONS
 ) => {
-  // const { bbox, confidence, class_id, tracker_id } = detections;
-  const { bbox, confidence, class_id } = detections;
+  const { bbox, confidence, class_id, _roi_compensated } = detections;
   const { labels, threshold, inputImage } = {
     ...DEFAULT_OPTIONS,
     ...options,
@@ -51,29 +68,20 @@ export const drawObjectDetectionOutput: RendererFunction<Detections> = async (
   for (let i = 0; i < bbox.length; i++) {
     if (confidence[i] < threshold) continue;
 
-    const [x1, y1, x2, y2] = bbox[i].map((coord) => (coord <= 1.0 ? coord : 1.0));
+    let [x1, y1, x2, y2] = bbox[i].map((coord) => (coord <= 1.0 ? coord : 1.0));
+
+    // Compensate for ROI when needed
+    if (!(roi[0] === 0 && roi[1] === 0 && roi[2] === 1 && roi[3] === 1) && !_roi_compensated) {
+      x1 = roi[0] + x1 * roi[2];
+      y1 = roi[1] + y1 * roi[3];
+      x2 = roi[0] + x2 * roi[2];
+      y2 = roi[1] + y2 * roi[3];
+    }
 
     const img_x1 = Math.round(x1 * width);
     const img_y1 = Math.round(y1 * height);
     const img_x2 = Math.round(x2 * width);
     const img_y2 = Math.round(y2 * height);
-
-    // This code snippet (stringToColour) is based on content from Stack Overflow.
-    // Original question: https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript
-    // Answer by: [Joe Freeman](https://stackoverflow.com/users/108907/joe-freeman)
-    // Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
-    const stringToColour = (str: string) => {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      let colour = "#";
-      for (let i = 0; i < 3; i++) {
-        const value = (hash >> (i * 8)) & 0xff;
-        colour += ("00" + value.toString(16)).substr(-2);
-      }
-      return colour;
-    };
 
     // Check if labels is null or empty and handle it
     const label = labels && labels.length ? labels[class_id[i]] : class_id[i];
