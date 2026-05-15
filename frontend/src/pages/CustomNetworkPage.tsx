@@ -22,7 +22,7 @@ import { NetworkData, EditNetworkData } from "../interfaces/CustomNetworkInterfa
 import CustomNetwork from "../components/custom-network/CustomNetwork";
 import EditCustomNetwork from "../components/custom-network/EditCustomNetwork";
 
-const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST ? process.env.REACT_APP_BACKEND_HOST : "";
+const BACKEND_HOST = import.meta.env.REACT_APP_BACKEND_HOST ?? "";
 
 const CustomNetworkPage = () => {
   const [networks, setNetworks] = useState([]);

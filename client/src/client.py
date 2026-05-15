@@ -15,18 +15,15 @@
 #
 
 import asyncio
-import base64
 import configparser
 import multiprocessing
 import os
 import signal
 
-import cv2
 import socketio
 from dotenv import load_dotenv
-from src.client_utils import CustomModel
 
-from modlib.devices import AiCamera
+from src.client_utils import run_modlib, run_modlib_data_injection
 
 
 class DeviceClient:
@@ -46,7 +43,8 @@ class DeviceClient:
         self.capture_response_queue = multiprocessing.Queue()
 
     def initialize_sio(self):
-        self.sio = socketio.AsyncClient()
+        # Disable engineio's SIGINT handler so our handle_sigterm runs
+        self.sio = socketio.AsyncClient(handle_sigint=False)
 
         @self.sio.event
         async def connect():
@@ -76,7 +74,8 @@ class DeviceClient:
                 self.enable_input_tensor = msg["value"]
                 self.stop_stream()
                 self.start_stream()
-
+            elif msg["action"] == "data_injection":
+                self.start_data_injection(msg)
             # Device control event
             else:
                 self.cmd_queue.put(msg)
@@ -131,7 +130,8 @@ class DeviceClient:
         except asyncio.CancelledError:
             print("Client run cancelled")
         finally:
-            await self.sio.disconnect()
+            if self.sio and self.sio.connected:
+                await self.sio.disconnect()
 
     async def process_queue(self):
         while True:
@@ -160,71 +160,55 @@ class DeviceClient:
             self.stop_stream()
 
         self.loop.create_task(self.process_queue())
-        self.streaming_process = multiprocessing.Process(target=self.modlib_run)
+        self.streaming_process = multiprocessing.Process(
+            target=run_modlib,
+            args=(
+                self.queue,
+                self.cmd_queue,
+                self.capture_response_queue,
+                self.selected_model,
+                self.enable_input_tensor,
+            ),
+        )
         self.streaming_process.start()
 
-    def modlib_run(self):
-        device = AiCamera(headless=True, enable_input_tensor=self.enable_input_tensor)
-        model = self.get_modlib_model(self.selected_model)
-        if model:
-            device.deploy(model, overwrite=False)
+    def start_data_injection(self, msg):
+        if self.streaming_process is not None and self.streaming_process.is_alive():
+            print("Stream is already running, waiting for shutdown")
+            self.stop_stream()
 
-        with device as stream:
-            for frame in stream:
-                # Process command queue
-                if not self.cmd_queue.empty():
-                    msg = self.cmd_queue.get()
-                    if msg.get("action") == "capture":
-                        ret, buffer = cv2.imencode(
-                            ".jpg",
-                            (
-                                cv2.cvtColor(frame.image, cv2.COLOR_RGB2BGR)
-                                if frame.color_format == "RGB"
-                                else frame.image
-                            ),
-                        )
-                        self.capture_response_queue.put(
-                            {"image": f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}"}
-                        )
-                    elif msg.get("action") == "input_tensor_cropping":
-                        device.set_input_tensor_cropping(tuple(msg.get("roi_relative")))
-                    elif msg.get("action") == "shutdown":
-                        break
-                    else:
-                        raise ValueError("Unknown control event.")
+        # Data Injection Source
+        collection_name = msg["source"]
+        modlib_home = os.getenv("MODLIB_HOME", os.path.expanduser("~/.modlib"))
+        data_injection_source = os.path.join(modlib_home, "collections", collection_name)
 
-                ret, buffer = cv2.imencode(
-                    ".jpg", cv2.cvtColor(frame.image, cv2.COLOR_RGB2BGR) if frame.color_format == "RGB" else frame.image
-                )
+        # Select model
+        self.select_model(msg)
 
-                frame_data = {
-                    "image": f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}",
-                    "detections": frame.detections.json() if model else None,
-                    "width": frame.width,
-                    "height": frame.height,
-                    "roi": frame.roi,
-                    "fps": frame.fps,
-                    "dps": frame.dps,
-                }
-
-                self.queue.put(frame_data)
-
-    @staticmethod
-    def get_modlib_model(model_name: str):
-        model_config = configparser.ConfigParser()
-        model_config.read(f"{os.getenv('MODLIB_HOME', os.path.expanduser('~/.modlib'))}/models/models.cfg")
-
-        if model_config.has_section(model_name):
-            return CustomModel(model_config[model_name])
-        else:
-            return None
+        self.loop.create_task(self.process_queue())
+        self.streaming_process = multiprocessing.Process(
+            target=run_modlib_data_injection,
+            args=(
+                self.queue,
+                self.cmd_queue,
+                self.capture_response_queue,
+                self.selected_model,
+                data_injection_source,
+            ),
+        )
+        self.streaming_process.start()
 
     async def shutdown(self):
-        # Stop streaming process the queue
-        if self.streaming_process and self.streaming_process.is_alive():
+        try:
             self.queue.put_nowait(None)
+        except Exception:
+            pass
+
+        # Stop streaming process
+        if self.streaming_process and self.streaming_process.is_alive():
             self.cmd_queue.put_nowait({"action": "shutdown"})
-            self.streaming_process.join()
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, self.streaming_process.join)
 
         if self.sio:
             await self.sio.disconnect()

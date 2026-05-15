@@ -20,6 +20,7 @@ import CustomNetworkPage from "./pages/CustomNetworkPage";
 import CameraPreviewPage from "./pages/CameraPreviewPage";
 import CollectionsPage from "./pages/CollectionsPage";
 import CollectionDetailPage from "./pages/CollectionDetailPage";
+import DataInjectionPage from "./pages/DataInjectionPage";
 
 import Root from "./Root";
 import ErrorPage from "./ErrorPage";
@@ -36,6 +37,7 @@ const router = createBrowserRouter(
         { path: "camera-preview", element: <CameraPreviewPage /> },
         { path: "collections", element: <CollectionsPage /> },
         { path: "collections/:collection_name", element: <CollectionDetailPage /> },
+        { path: "data-injection", element: <DataInjectionPage /> },
         {
           path: "*",
           element: <ErrorPage />,

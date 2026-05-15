@@ -25,14 +25,15 @@ import { drawClassificationOutput } from "../../utils/classification";
 import { drawObjectDetectionOutput } from "../../utils/object-detection";
 import { drawPoseEstimationOutput } from "../../utils/pose-estimation";
 import { drawSegmentationOutput } from "../../utils/segmentation";
+import { drawInstanceSegmentationOutput } from "../../utils/instance-segmentation";
 import { drawAnomalyOutput } from "../../utils/anomaly";
 import useHttpNotifications from "../../hooks/use-http-notifications";
 import { Socket } from "socket.io-client";
 import { NetworkData } from "../../interfaces/CustomNetworkInterfaces";
-import { Classifications, Detections, Poses, Segments, Anomaly, FrameData, RendererFunction, RendererOptions } from "../../interfaces/DetectionInterfaces";
+import { Classifications, Detections, Poses, Segments, InstanceSegments, Anomaly, FrameData, RendererFunction, RendererOptions } from "../../interfaces/DetectionInterfaces";
 import CameraControls from "./CameraControls";
 
-const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST ? process.env.REACT_APP_BACKEND_HOST : "";
+const BACKEND_HOST = import.meta.env.REACT_APP_BACKEND_HOST ?? "";
 
 interface ImageDisplayProps {
   socket: Socket;
@@ -45,6 +46,7 @@ export type RendererFunctions =
   | RendererFunction<Detections>
   | RendererFunction<Poses>
   | RendererFunction<Segments>
+  | RendererFunction<InstanceSegments>
   | RendererFunction<Anomaly>
 
 type Collection = {
@@ -63,6 +65,7 @@ const ImageDisplay = ({ socket, initial_collection, initial_expanded }: ImageDis
   const [expanded, setExpanded] = useState(initial_expanded);
   const thresholdRef = useRef<number>(0.3);
   const pixelThresholdRef = useRef<number>(0.3);
+  const keypointScoreThresholdRef = useRef<number>(0.5);
   const fpsRef = useRef<number>(0);
   const dpsRef = useRef<number>(0);
   const showROIRef = useRef<boolean>(false);
@@ -72,6 +75,7 @@ const ImageDisplay = ({ socket, initial_collection, initial_expanded }: ImageDis
   const dragLengthRef = useRef<number[]>([-1, -1]);
   const dragIsSquaredRef = useRef<boolean>(false);
   const enableInputTensorRef = useRef<boolean>(false);
+  const updateROIControlsRef = useRef<boolean>(true);
 
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [collections, setCollections] = useState([]);
@@ -94,14 +98,20 @@ const ImageDisplay = ({ socket, initial_collection, initial_expanded }: ImageDis
       case "pp_od_bscn":
       case "pp_od_bcsn":
       case "pp_od_efficientdet_lite0":
+      case "pp_od_yolo_ultralytics":
         setRenderer(() => drawObjectDetectionOutput as RendererFunction<Detections>);
         break;
       case "pp_posenet":
       case "pp_higherhrnet":
+      case "pp_personlab":
+      case "pp_yolo_pose_ultralytics":
         setRenderer(() => drawPoseEstimationOutput as RendererFunction<Poses>);
         break;
       case "pp_segment":
         setRenderer(() => drawSegmentationOutput as RendererFunction<Segments>);
+        break;
+      case "pp_yolo_segment_ultralytics":
+        setRenderer(() => drawInstanceSegmentationOutput as RendererFunction<InstanceSegments>);
         break;
       case "pp_anomaly":
         setRenderer(() => drawAnomalyOutput as RendererFunction<Anomaly>);
@@ -166,12 +176,19 @@ const ImageDisplay = ({ socket, initial_collection, initial_expanded }: ImageDis
         } else if (renderer === drawAnomalyOutput) {
           options.threshold = thresholdRef.current;
           options.pixel_threshold = pixelThresholdRef.current;
+        } else if (renderer === drawPoseEstimationOutput) {
+          options.threshold = thresholdRef.current;
+          options.keypoint_score_threshold = keypointScoreThresholdRef.current;
         }
 
-        // Update ROI if needed
-        let roi = frame.roi;
+        // Update ROI if needed — parse {left, top, width, height} to [left, top, width, height]
+        let roi: [number, number, number, number] | undefined;
+        if (frame.roi) {
+          const r = frame.roi;
+          roi = [r.left, r.top, r.width, r.height];
+        }
         if (enableInputTensorRef.current) { roi = [0, 0, 1, 1]; }
-        setROI(frame.roi);
+        setROI(roi ?? null);
 
         // Render
         if (renderer) {
@@ -275,6 +292,7 @@ const ImageDisplay = ({ socket, initial_collection, initial_expanded }: ImageDis
 
     // Change ROI
     handleChangeROI([left, top, width, height])
+    updateROIControlsRef.current = true;
 
     // Reset
     dragStartRef.current = [-1, -1];
@@ -437,6 +455,7 @@ const ImageDisplay = ({ socket, initial_collection, initial_expanded }: ImageDis
           collections={collections}
           thresholdRef={thresholdRef}
           pixelThresholdRef={pixelThresholdRef}
+          keypointScoreThresholdRef={keypointScoreThresholdRef}
           setSelectedCollection={setSelectedCollection}
           renderer={renderer}
           onCapture={handleCapture}
@@ -448,6 +467,7 @@ const ImageDisplay = ({ socket, initial_collection, initial_expanded }: ImageDis
           toggleDragSquared={(value: boolean) => dragIsSquaredRef.current = value}
           enableInputTensor={enableInputTensorRef.current}
           toggleEnableInputTensor={handleEnableInputTensor}
+          updateROIControlsRef={updateROIControlsRef}
         />
       </Collapse>
       <Divider sx={{ pb: 2 }}>

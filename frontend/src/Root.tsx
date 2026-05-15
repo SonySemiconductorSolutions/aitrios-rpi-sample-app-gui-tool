@@ -199,6 +199,7 @@ const linkTabs = [
   { to: "/custom-network", text: "Custom network", icon: <HomeRepairServiceIcon /> },
   { to: "/camera-preview", text: "Camera preview", icon: <VideocamIcon /> },
   { to: "/collections", text: "Images", icon: <CollectionsIcon /> },
+  { to: "/data-injection", text: "Data injection", icon: <ChevronLeftIcon /> },
 ];
 
 const Root = () => {

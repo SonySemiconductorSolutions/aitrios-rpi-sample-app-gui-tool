@@ -1,18 +1,18 @@
 [project]
 name = "guitool-client"
-version = "2.0.0"
+version = "2.1.0"
 description = ""
 authors = [
     {name = "Sony Semiconductor Solutions Corp"},
 ]
-requires-python = "==3.11.*"
+requires-python = ">=3.11,<3.14"
 
 dependencies = [
-    "aiohttp==3.9.5",
+    "aiohttp>=3.11.0",
     "python-dotenv==1.0.1",
     "python-socketio==5.11.3",
-    "modlib",
+    "modlib==1.4.0",
 ]
 
-[tool.uv.sources]
-modlib = { git = "https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library.git", branch = "main" }
+[tool.uv]
+python-preference = "system"

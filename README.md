@@ -82,6 +82,7 @@ The easiest way to get started is to download the models available in theIMX500 
 | Input Tensor Cropping                        | ✔️        |
 | IMX500 Raspberry Pi Model Zoo                | ✔️        |
 | Custom models (KERAS, ONNX & Converting & Packaging) | ✔️        |
+| Data Injection                               | ✔️        |
 
 ## Development Environment Setup 🙇
 
@@ -121,6 +122,10 @@ The easiest way to get started is to download the models available in theIMX500 
 ## License
 
 [LICENSE](./LICENSE)
+
+## Support
+
+For any questions, issues, or support requests related to this project, please visit the [Raspberry Pi Forum](https://forums.raspberrypi.com/viewforum.php?f=169).
 
 ## Notice
 
