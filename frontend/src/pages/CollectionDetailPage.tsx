@@ -28,7 +28,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import CollectionsIcon from "@mui/icons-material/Collections";
 
 
-const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST ? process.env.REACT_APP_BACKEND_HOST : "";
+const BACKEND_HOST = import.meta.env.REACT_APP_BACKEND_HOST ?? "";
 
 
 interface Image {

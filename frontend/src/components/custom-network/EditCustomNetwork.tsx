@@ -264,9 +264,13 @@ const EditCustomNetwork = ({ open, selectedNetwork, onClose, onAdd, onSave, onDe
                 <MenuItem value="pp_od_bcsn">Object Detection (BCSN)</MenuItem>
                 <MenuItem value="pp_od_bscn">Object Detection (BSCN)</MenuItem>
                 <MenuItem value="pp_od_efficientdet_lite0">Object Detection (EfficientDet Lite0)</MenuItem>
+                <MenuItem value="pp_od_yolo_ultralytics">Object Detection (YOLO Ultralytics)</MenuItem>
                 <MenuItem value="pp_posenet">Pose Estimation (PoseNet)</MenuItem>
                 <MenuItem value="pp_higherhrnet">Pose Estimation (HigherHRNet)</MenuItem>
+                <MenuItem value="pp_personlab">Pose Estimation (PersonLab)</MenuItem>
+                <MenuItem value="pp_yolo_pose_ultralytics">Pose Estimation (YOLO Ultralytics)</MenuItem>
                 <MenuItem value="pp_segment">Segmentation</MenuItem>
+                <MenuItem value="pp_yolo_segment_ultralytics">Instance Segmentation (YOLO Ultralytics)</MenuItem>
                 <MenuItem value="pp_anomaly">Anomaly Detection</MenuItem>
               </Select>
             </FormControl>

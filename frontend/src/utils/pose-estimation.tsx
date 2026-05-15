@@ -39,7 +39,7 @@ const skeleton = [
 
 const drawKeypoints = (
   ctx: CanvasRenderingContext2D,
-  keypoints: number[][],
+  keypoints: number[][][],
   keypointScores: number[][],
   poseIdx: number,
   keypointIdx: number,
@@ -51,8 +51,8 @@ const drawKeypoints = (
   _roi_compensated: boolean
 ) => {
   if (keypointScores[poseIdx][keypointIdx] >= threshold) {
-    let y = keypoints[poseIdx][2 * keypointIdx];
-    let x = keypoints[poseIdx][2 * keypointIdx + 1];
+    let x = keypoints[poseIdx][keypointIdx][0];
+    let y = keypoints[poseIdx][keypointIdx][1];
     
     // Compensate for ROI when needed
     if (!(roi[0] === 0 && roi[1] === 0 && roi[2] === 1 && roi[3] === 1) && !_roi_compensated) {
@@ -69,7 +69,7 @@ const drawKeypoints = (
 
 const drawSkeleton = (
   ctx: CanvasRenderingContext2D,
-  keypoints: number[][],
+  keypoints: number[][][],
   keypointScores: number[][],
   poseIdx: number,
   scaleX: number,
@@ -81,10 +81,10 @@ const drawSkeleton = (
   skeleton.forEach(([keypoint1, keypoint2]) => {
     // Draw Line
     if (keypointScores[poseIdx][keypoint1] >= threshold && keypointScores[poseIdx][keypoint2] >= threshold) {
-      let y1 = keypoints[poseIdx][2 * keypoint1] ;
-      let x1 = keypoints[poseIdx][2 * keypoint1 + 1];
-      let y2 = keypoints[poseIdx][2 * keypoint2];
-      let x2 = keypoints[poseIdx][2 * keypoint2 + 1];
+      let x1 = keypoints[poseIdx][keypoint1][0];
+      let y1 = keypoints[poseIdx][keypoint1][1];
+      let x2 = keypoints[poseIdx][keypoint2][0];
+      let y2 = keypoints[poseIdx][keypoint2][1];
       
       // Compensate for ROI when needed
       if (!(roi[0] === 0 && roi[1] === 0 && roi[2] === 1 && roi[3] === 1) && !_roi_compensated) {
@@ -114,11 +114,12 @@ export const drawPoseEstimationOutput: RendererFunction<Poses> = async (
   options: RendererOptions = DEFAULT_OPTIONS
 ) => {
   const keypointRadius = 3
-  const keypointScoreThreshold = 0.5;
-  const { inputImage } = {
+  const { inputImage, threshold = 0.5, keypoint_score_threshold = 0.5 } = {
     ...DEFAULT_OPTIONS,
     ...options,
   };
+  const confidenceThreshold = threshold;
+  const keypointScoreThreshold = keypoint_score_threshold;
 
   if (inputImage) {
     await drawInputImage(ctx, input, width, height);
@@ -128,7 +129,7 @@ export const drawPoseEstimationOutput: RendererFunction<Poses> = async (
   const scaleY = height;
 
   for (let i = 0; i < detections.n_detections; i++) {
-    if (detections.confidence[i] > keypointScoreThreshold) {
+    if (detections.confidence[i] > confidenceThreshold) {
       for (let j = 0; j < 17; j++) {
         drawKeypoints(ctx, detections.keypoints, detections.keypoint_scores, i, j, scaleX, scaleY, keypointRadius, keypointScoreThreshold, roi, detections._roi_compensated);
       }

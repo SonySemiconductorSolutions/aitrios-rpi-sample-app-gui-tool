@@ -30,8 +30,10 @@ export interface Detections {
 export interface Poses {
   n_detections: number;
   confidence: number[];
-  keypoints: number[][];
+  keypoints: number[][][];
   keypoint_scores: number[][];
+  bbox: number[][] | null;
+  tracker_id: number[] | null;
   _roi_compensated: boolean;
 }
 
@@ -43,6 +45,18 @@ export interface Segments {
   _roi_compensated: boolean;
 }
 
+export interface InstanceSegments {
+  n_segments: number;
+  indeces: number[];
+  mask: string;
+  mask_shape: number[];
+  bbox: number[][] | null;
+  confidence: number[];
+  class_id: number[];
+  tracker_id: number[] | null;
+  _roi_compensated: boolean;
+}
+
 export interface Anomaly {
   score: number;
   heatmap: string;
@@ -50,15 +64,31 @@ export interface Anomaly {
   _roi_compensated: boolean;
 }
 
+export interface ROIRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
 
 export interface FrameData {
   image: string;
-  detections: (Classifications & Detections & Segments & Poses & Anomaly) | null;
+  detections: (Classifications & Detections & Segments & InstanceSegments & Poses & Anomaly) | null;
   width: number;
   height: number;
-  roi: [number, number, number, number];
+  roi: ROIRect;
   fps: number;
   dps: number;
+}
+
+export interface DataInjectionFrameData {
+  image: string;
+  detections: (Classifications & Detections & Segments & InstanceSegments & Poses & Anomaly) | null;
+  width: number;
+  height: number;
+  roi: ROIRect;
+  current: number;
+  total: number;
 }
 
 export interface RendererOptions {
@@ -66,6 +96,7 @@ export interface RendererOptions {
   labels?: string[] | null;
   threshold?: number;
   pixel_threshold?: number;
+  keypoint_score_threshold?: number;
 }
 
 export type RendererFunction<T> = (

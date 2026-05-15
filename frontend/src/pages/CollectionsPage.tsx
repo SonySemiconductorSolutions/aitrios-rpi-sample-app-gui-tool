@@ -19,7 +19,7 @@ import PageLayout from "../components/layout/PageLayout";
 import Collections from "../components/collections/Collections"
 import useHttpNotifications from "../hooks/use-http-notifications";
 
-const BACKEND_HOST = process.env.REACT_APP_BACKEND_HOST ? process.env.REACT_APP_BACKEND_HOST : "";
+const BACKEND_HOST = import.meta.env.REACT_APP_BACKEND_HOST ?? "";
 
 
 const CollectionsPage = () => {

@@ -30,11 +30,7 @@ ifneq (,$(wildcard .env))
 	include .env
 endif
 
-setup: .venv-client .build-frontend
-	test -d .venv || uv venv --system-site-packages
-
-.venv-client:
-	cd client && test -d .venv || uv venv --system-site-packages
+setup: .build-frontend
 
 .build-frontend:
 	rm -rf frontend/build
@@ -52,7 +48,6 @@ clean:
 	find . -name "*.egg-info" -type d -exec rm -rf {} +
 
 lint:
-	test -d .venv || uv venv --system-site-packages
 	uv run ruff format
 	uv run ruff check --fix
 	cd frontend && npm run lint
@@ -65,7 +60,6 @@ backend: .check-env
 	cd backend && uv run -m src.main
 	
 client: .check-env
-	test -d client/.venv || make .venv-client
 	cd client && uv run -m src.client
 
 frontend: .check-env

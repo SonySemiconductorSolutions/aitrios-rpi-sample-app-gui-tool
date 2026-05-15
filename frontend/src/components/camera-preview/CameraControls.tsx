@@ -1,4 +1,4 @@
-import { useState, useEffect, MutableRefObject } from "react";
+import { useState, useEffect, useRef, MutableRefObject } from "react";
 import { 
   Container,
   Grid,
@@ -28,7 +28,9 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
 import type { RendererFunctions } from "./ImageDisplay";
 import { drawObjectDetectionOutput } from "../../utils/object-detection";
+import { drawInstanceSegmentationOutput } from "../../utils/instance-segmentation";
 import { drawAnomalyOutput } from "../../utils/anomaly";
+import { drawPoseEstimationOutput } from "../../utils/pose-estimation";
 
 
 interface CameraControlsProps {
@@ -36,6 +38,7 @@ interface CameraControlsProps {
     collections: string[];
     thresholdRef: MutableRefObject<number>;
     pixelThresholdRef: MutableRefObject<number>;
+    keypointScoreThresholdRef: MutableRefObject<number>;
     setSelectedCollection: (value: string) => void;
     renderer: RendererFunctions | null;
     onCapture: (hasTimer: boolean, captureRate: number, captureNbrOfPhotos: number) => void;
@@ -47,6 +50,7 @@ interface CameraControlsProps {
     toggleDragSquared: (value: boolean) => void;
     enableInputTensor: boolean;
     toggleEnableInputTensor: (value: boolean) => void;
+    updateROIControlsRef: MutableRefObject<boolean>;
 }
 
 const CameraControls = ({
@@ -54,6 +58,7 @@ const CameraControls = ({
     collections,
     thresholdRef,
     pixelThresholdRef,
+    keypointScoreThresholdRef,
     setSelectedCollection,
     renderer,
     onCapture,
@@ -65,6 +70,7 @@ const CameraControls = ({
     toggleDragSquared,
     enableInputTensor,
     toggleEnableInputTensor,
+    updateROIControlsRef,
 }: CameraControlsProps) => {
 
     const [hasTimer, setHasTimer] = useState(false);
@@ -102,9 +108,22 @@ const CameraControls = ({
       "& input[type=number]": { MozAppearance: "textfield" },
     };
 
+    const ROIShouldChangeCountRef = useRef(0);
+    const maxIterations = 10;
+
     useEffect(() => {
-      if (!showROI && currentROI !== null) {
-        setROI(currentROI);
+      if (updateROIControlsRef.current == true && currentROI !== null) {
+        if (JSON.stringify(currentROI) !== JSON.stringify(ROI)) {
+          setROI(currentROI);
+          updateROIControlsRef.current = false;
+          ROIShouldChangeCountRef.current = 0;
+        } else {
+          ROIShouldChangeCountRef.current++;
+          if (ROIShouldChangeCountRef.current >= maxIterations) {
+            updateROIControlsRef.current = false;
+            ROIShouldChangeCountRef.current = 0;
+          }
+        }
       }
       if (originalROI === null) {
         setOriginalROI(currentROI);
@@ -183,7 +202,10 @@ const CameraControls = ({
                   <>
                     <Button
                       sx={circleButtonStyle} color="primary"
-                      onClick={() => handleChangeROI(originalROI)}
+                      onClick={() => {
+                        handleChangeROI(originalROI);
+                        updateROIControlsRef.current = true;
+                      }}
                       disabled={JSON.stringify(currentROI) === JSON.stringify(originalROI)}
                     >
                       <RestartAltIcon fontSize="large" />
@@ -342,12 +364,14 @@ const CameraControls = ({
         </Container> 
 
         {/* ARCHITECTURE SPECIFIC */}
-        {(renderer === drawObjectDetectionOutput || renderer === drawAnomalyOutput) && (
+        {(renderer === drawObjectDetectionOutput || renderer === drawInstanceSegmentationOutput || renderer === drawAnomalyOutput || renderer === drawPoseEstimationOutput) && (
             <>
             <Grid item xs={6}>
                 <Box>
                 <Typography fontWeight="bold" mb={2}>
-                  {renderer === drawObjectDetectionOutput ? "Detection Threshold" : "Anomaly Threshold"}
+                  {renderer === drawObjectDetectionOutput || renderer === drawInstanceSegmentationOutput ? "Detection Threshold" :
+                    renderer === drawAnomalyOutput ? "Anomaly Threshold" :
+                    "Confidence Threshold"}
                 </Typography>
                 <Grid container spacing={2} alignItems="center">
                     <Grid item xs>
@@ -407,6 +431,46 @@ const CameraControls = ({
                         size="small"
                         onChange={(e) => {
                             pixelThresholdRef.current = Number(e.target.value);
+                        }}
+                        inputProps={{
+                        min: 0,
+                        max: 1,
+                        step: 0.05,
+                        type: "number",
+                        "aria-labelledby": "input-slider",
+                        }}
+                    />
+                    </Grid>
+                </Grid>
+                </Box>
+            </Grid>
+            </>
+        )}
+        {renderer === drawPoseEstimationOutput && (
+            <>
+            <Grid item xs={6}>
+                <Box>
+                <Typography fontWeight="bold" mb={2}>
+                  Keypoint Score Threshold
+                </Typography>
+                <Grid container spacing={2} alignItems="center">
+                    <Grid item xs>
+                    <Slider
+                        value={keypointScoreThresholdRef.current}
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        onChange={(event, newValue) => {
+                            keypointScoreThresholdRef.current = newValue as number;
+                        }}
+                    />
+                    </Grid>
+                    <Grid item>
+                    <Input
+                        value={keypointScoreThresholdRef.current}
+                        size="small"
+                        onChange={(e) => {
+                            keypointScoreThresholdRef.current = Number(e.target.value);
                         }}
                         inputProps={{
                         min: 0,

@@ -33,14 +33,15 @@ interface RGB {
 }
 
 // Function to decode the base64 encoded mask
-const decompressMask = (compressedMask: string): Uint8Array => {
-  const binaryString = window.atob(compressedMask);
+const decompressMask = (compressedMask: string): Float32Array => {
+  const binaryString = atob(compressedMask);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
   for (let i = 0; i < len; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
-  return new Uint8Array(pako.inflate(bytes));
+  const decompressed = pako.ungzip(bytes);
+  return new Float32Array(decompressed.buffer);
 };
 
 
@@ -64,8 +65,7 @@ export const drawAnomalyOutput: RendererFunction<Anomaly> = async (
   }
   
   const [heatmapHeight, heatmapWidth] = detections.heatmap_shape;
-  const decodedHeatmap = decompressMask(detections.heatmap);
-  const heatmapArray = new Float32Array(decodedHeatmap.buffer);
+  const heatmapArray = decompressMask(detections.heatmap);
   
   const imageData = ctx.getImageData(0, 0, width, height);
   const widthRatio = heatmapWidth / (roi[2] * width);

@@ -56,13 +56,14 @@ const COLOR_PALETTE: RGB[] = [
 
 // Function to decode the base64 encoded mask
 const decompressMask = (compressedMask: string): Uint8Array => {
-  const binaryString = window.atob(compressedMask);
+  const binaryString = atob(compressedMask);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
   for (let i = 0; i < len; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
-  return new Uint8Array(pako.inflate(bytes));
+  const decompressed = pako.ungzip(bytes);
+  return new Uint8Array(decompressed.buffer);
 };
 
 // Function to draw the segmentation output with overlay
@@ -83,8 +84,7 @@ export const drawSegmentationOutput: RendererFunction<Segments> = async (
   }
 
   const [maskHeight, maskWidth] = detections.mask_shape;
-  const decodedMask = decompressMask(detections.mask);
-  const maskArray = new Uint8Array(decodedMask.buffer);
+  const maskArray = decompressMask(detections.mask);
 
   const imageData = ctx.getImageData(0, 0, width, height);
   const widthRatio = maskWidth / (roi[2] * width);
@@ -102,7 +102,7 @@ export const drawSegmentationOutput: RendererFunction<Segments> = async (
       const srcX = Math.floor((x - start_x) * widthRatio);
       const segmentIndex = maskArray[srcY + srcX];
 
-      if (segmentIndex !== 0) {
+      if (segmentIndex !== 255) { // -1 / 255 represents background
         const color = COLOR_PALETTE[segmentIndex];
         const alpha = 0.4;
 

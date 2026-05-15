@@ -24,21 +24,19 @@ const DEFAULT_OPTIONS: RendererOptions = {
   threshold: 0.3,
 };
 
-// This code snippet (stringToColour) is based on content from Stack Overflow.
-// Original question: https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript
-// Answer by: [Joe Freeman](https://stackoverflow.com/users/108907/joe-freeman)
-// Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
-const stringToColour = (str: string) => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+const generateColorFromString = (input: string) => {
+  let accumulatedHash = 0;
+  let hexColor = "#";
+
+  for (let i = 0; i < input.length; i++) {
+    accumulatedHash = input.charCodeAt(i) + ((accumulatedHash << 5) - accumulatedHash);
   }
-  let colour = "#";
+
   for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff;
-    colour += ("00" + value.toString(16)).substr(-2);
+    hexColor += ("00" + ((accumulatedHash >> (i * 8)) & 0xff).toString(16)).slice(-2);
   }
-  return colour;
+
+  return hexColor;
 };
 
 export const drawObjectDetectionOutput: RendererFunction<Detections> = async (
@@ -85,7 +83,7 @@ export const drawObjectDetectionOutput: RendererFunction<Detections> = async (
 
     // Check if labels is null or empty and handle it
     const label = labels && labels.length ? labels[class_id[i]] : class_id[i];
-    const color = stringToColour(label.toString());
+    const color = generateColorFromString(label.toString());
 
     // Draw the bounding box
     ctx.strokeStyle = color;

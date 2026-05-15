@@ -2,7 +2,7 @@
     "repo_url": "https://github.com/raspberrypi/imx500-models.git",
     "models": [
         {
-            "network_name": "efficientnet_bo",
+            "network_name": "EfficientNetB0",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -11,7 +11,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "efficientnet_lite0",
+            "network_name": "EfficientNetLite0",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -20,7 +20,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "efficientnetv2_b0",
+            "network_name": "EfficientNetV2B0",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls",
             "color_format": "RGB",
@@ -29,7 +29,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "efficientnetv2_b1",
+            "network_name": "EfficientNetV2B1",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls",
             "color_format": "RGB",
@@ -38,7 +38,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "efficientnetv2_b2",
+            "network_name": "EfficientNetV2B2",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls",
             "color_format": "RGB",
@@ -47,7 +47,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "mnasnet1.0",
+            "network_name": "MNASNet1_0",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -56,7 +56,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "mobilenet_v2",
+            "network_name": "MobileNetV2",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls",
             "color_format": "RGB",
@@ -65,7 +65,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "mobilevit_xs",
+            "network_name": "MobileViTXS",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "BGR",
@@ -74,7 +74,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "mobilevit_xxs",
+            "network_name": "MobileViTXXS",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -83,7 +83,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "regnetx_002",
+            "network_name": "RegNetX002",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -92,7 +92,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "regnety_002",
+            "network_name": "RegNetY002",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -101,7 +101,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "regnety_004",
+            "network_name": "RegNetY004",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -110,7 +110,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "resnet18",
+            "network_name": "ResNet18",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -119,7 +119,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "shufflenet_v2_x1_5",
+            "network_name": "ShuffleNetV2X1_5",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -128,7 +128,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "squeezenet1.0",
+            "network_name": "SqueezeNet1_0",
             "network_type": "rpk_packaged",
             "post_processor": "pp_cls_softmax",
             "color_format": "RGB",
@@ -137,7 +137,7 @@
             "labels_file": "imagenet_labels.txt"
         },
         {
-            "network_name": "efficientdet_lite0_pp",
+            "network_name": "EfficientDetLite0",
             "network_type": "rpk_packaged",
             "post_processor": "pp_od_efficientdet_lite0",
             "color_format": "RGB",
@@ -146,7 +146,7 @@
             "labels_file": "coco_labels_91.txt"
         },
         {
-            "network_name": "nanodet_plus_416x416_pp",
+            "network_name": "NanoDetPlus416x416",
             "network_type": "rpk_packaged",
             "post_processor": "pp_od_bscn",
             "color_format": "BGR",
@@ -155,7 +155,7 @@
             "labels_file": "coco_labels_80.txt"
         },
         {
-            "network_name": "ssd_mobilenetv2_fpnlite_320x320_pp",
+            "network_name": "SSDMobileNetV2FPNLite320x320",
             "network_type": "rpk_packaged",
             "post_processor": "pp_od_bscn",
             "color_format": "RGB",
@@ -164,7 +164,25 @@
             "labels_file": "coco_labels_91.txt"
         },
         {
-            "network_name": "deeplabv3plus",
+            "network_name": "YOLOv8n",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_od_yolo_ultralytics",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_yolov8n_pp.rpk",
+            "labels_file": "coco_labels_80.txt"
+        },
+        {
+            "network_name": "YOLO11n",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_od_yolo_ultralytics",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": true,
+            "model_file": "imx500_network_yolo11n_pp.rpk",
+            "labels_file": "coco_labels_80.txt"
+        },
+        {
+            "network_name": "DeepLabV3Plus",
             "network_type": "rpk_packaged",
             "post_processor": "pp_segment",
             "color_format": "RGB",
@@ -172,12 +190,20 @@
             "model_file": "imx500_network_deeplabv3plus.rpk"
         },
         {
-            "network_name": "posenet",
+            "network_name": "Posenet",
             "network_type": "rpk_packaged",
             "post_processor": "pp_posenet",
             "color_format": "RGB",
             "preserve_aspect_ratio": false,
             "model_file": "imx500_network_posenet.rpk"
+        },
+        {
+            "network_name": "HigherHRNet",
+            "network_type": "rpk_packaged",
+            "post_processor": "pp_higherhrnet",
+            "color_format": "RGB",
+            "preserve_aspect_ratio": false,
+            "model_file": "imx500_network_higherhrnet_coco.rpk"
         }
     ]
 }

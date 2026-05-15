@@ -1,11 +1,11 @@
 [project]
 name = "guitool"
-version = "2.0.0"
+version = "2.1.0"
 description = ""
 authors = [
     {name = "Sony Semiconductor Solutions Corp"},
 ]
-requires-python = "==3.11.*"
+requires-python = ">=3.11,<3.14"
 
 dependencies = [
     "guitool-backend",
@@ -26,6 +26,9 @@ members = [
 dev = [
     "ruff>=0.9.2",
 ]
+
+[tool.uv]
+python-preference = "system"
 
 [tool.ruff]
 line-length = 121
